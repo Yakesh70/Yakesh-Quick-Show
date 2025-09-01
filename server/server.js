@@ -15,7 +15,12 @@ import { protectAdmin } from './middleware/auth.js';
 const app = express();
 const port = process.env.PORT || 3000;
 
-await connectDB();
+try {
+  await connectDB();
+} catch (error) {
+  console.error('Database connection failed:', error);
+  // Continue without DB for now
+}
 
 // Stripe Webhooks Route
 app.use('/api/stripe', express.raw({type: 'application/json'}), stripeWebhooks);
@@ -36,4 +41,8 @@ app.use('/api/admin', ...protectAdmin, adminRouter);
 app.use('/api/user', protect, userRouter);
 
 
-app.listen(port, ()=> console.log(`Server listening at http://localhost:${port}`));
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(port, ()=> console.log(`Server listening at http://localhost:${port}`));
+}
+
+export default app;
